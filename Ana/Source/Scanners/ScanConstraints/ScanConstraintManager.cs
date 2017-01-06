@@ -141,13 +141,10 @@
         /// <summary>
         /// Removes constraints by indicies
         /// </summary>
-        /// <param name="constraintIndicies">The indicies of removal</param>
-        public void RemoveConstraints(IEnumerable<Int32> constraintIndicies)
+        /// <param name="constraint">The constraint to remove</param>
+        public void RemoveConstraints(ScanConstraint constraint)
         {
-            foreach (Int32 index in constraintIndicies.OrderByDescending(x => x))
-            {
-                this.ValueConstraints.RemoveAt(index);
-            }
+            this.ValueConstraints.Remove(constraint);
         }
 
         /// <summary>

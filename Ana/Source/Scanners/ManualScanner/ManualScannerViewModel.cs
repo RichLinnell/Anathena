@@ -48,6 +48,8 @@
             this.StartScanCommand = new RelayCommand(() => Task.Run(() => this.StartScan()), () => true);
 
             // Note: Not async to avoid updates slower than the perception threshold
+            this.EditCommand = new RelayCommand<dynamic>((selected) => this.EditRowCommand(selected), (newValue) => true);
+            this.RemoveConstraintCommand = new RelayCommand<dynamic>((selected) => this.RemoveSelectedConstraint(selected), (selected) => true);
             this.UpdateActiveValueCommand = new RelayCommand<dynamic>((newValue) => this.UpdateActiveValue(newValue), (newValue) => true);
             this.SelectChangedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ConstraintsEnum.Changed), () => true);
             this.SelectDecreasedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ConstraintsEnum.Decreased), () => true);
@@ -65,7 +67,6 @@
 
             // Note: Constraint modifying commands cannot be async since they modify the observable collection, which must be done on the same thread as the GUI
             this.AddSelectedConstraintCommand = new RelayCommand(() => this.AddSelectedConstraint(), () => true);
-            this.RemoveSelectedConstraintCommand = new RelayCommand(() => this.RemoveSelectedConstraint(), () => true);
             this.ClearConstraintsCommand = new RelayCommand(() => this.ClearConstraints(), () => true);
             this.SelectedScanConstraint = new ScanConstraint(ConstraintsEnum.Equal);
             this.ManualScannerModel = new ManualScannerModel();
@@ -75,6 +76,11 @@
             Task.Run(() => ScanResultsViewModel.GetInstance().Subscribe(this));
             Task.Run(() => MainViewModel.GetInstance().Subscribe(this));
         }
+
+        /// <summary>
+        /// Gets the command to edit a stored constraint
+        /// </summary>
+        public ICommand EditCommand { get; private set; }
 
         /// <summary>
         /// Gets the command begin the scan
@@ -94,7 +100,7 @@
         /// <summary>
         /// Gets the command to remove the selected constraint to the list of scan constraints
         /// </summary>
-        public ICommand RemoveSelectedConstraintCommand { get; private set; }
+        public ICommand RemoveConstraintCommand { get; private set; }
 
         /// <summary>
         /// Gets the command to clear all added constraints
@@ -267,6 +273,16 @@
             return null;
         }
 
+        private Object EditRowCommand(ScanConstraint newValue)
+        {
+            this.selectedScanConstraint = newValue;
+            this.ScanConstraintManager.RemoveConstraints(newValue);
+            this.RaisePropertyChanged(nameof(this.SelectedScanConstraint));
+            this.RaisePropertyChanged(nameof(this.ScanConstraintImage));
+            this.RaisePropertyChanged(nameof(this.ActiveScanConstraint));
+            return null;
+        }
+
         /// <summary>
         /// Adds the selected constraint to the list of scan constraints
         /// </summary>
@@ -279,9 +295,9 @@
         /// <summary>
         /// Removes the selected constraint from the list of scan constraints
         /// </summary>
-        private void RemoveSelectedConstraint()
+        private void RemoveSelectedConstraint(ScanConstraint constraintToRemove)
         {
-            this.ScanConstraintManager.RemoveConstraints(new Int32[] { 0 });
+            this.ScanConstraintManager.RemoveConstraints(constraintToRemove);
         }
 
         /// <summary>
